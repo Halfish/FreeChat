@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: /Users/zhangwei/java/workspace2/FreeChat/FreeChat/src/com/example/freechat/aidl/AIDLChatActivity.aidl
+ * Original file: F:\\gitwork\\freechat\\FreeChat\\src\\com\\example\\freechat\\aidl\\AIDLChatActivity.aidl
  */
 package com.example.freechat.aidl;
 public interface AIDLChatActivity extends android.os.IInterface

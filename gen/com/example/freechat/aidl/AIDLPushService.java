@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: /Users/zhangwei/java/workspace2/FreeChat/FreeChat/src/com/example/freechat/aidl/AIDLPushService.aidl
+ * Original file: F:\\gitwork\\freechat\\FreeChat\\src\\com\\example\\freechat\\aidl\\AIDLPushService.aidl
  */
 package com.example.freechat.aidl;
 public interface AIDLPushService extends android.os.IInterface
