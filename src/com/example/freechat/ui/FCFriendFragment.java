@@ -3,6 +3,7 @@ package com.example.freechat.ui;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.freechat.FCConfigure;
 import com.example.freechat.R;
 import com.example.freechat.ui.activity.FCChatActivity;
 import com.example.freechat.ui.activity.FCMainActivity;
@@ -50,7 +51,7 @@ public class FCFriendFragment extends Fragment {
         m_adapter = new FCFriendAdapter(getActivity().getApplicationContext(), m_friendList);
         m_friendListView.setAdapter(m_adapter);
         
-        m_friendList.add(new FCFriend("test1", "123"));
+        m_friendList.add(new FCFriend(FCConfigure.myName, "123"));
         
         m_friendListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

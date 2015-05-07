@@ -7,6 +7,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
@@ -24,6 +26,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import com.example.freechat.FCMessageUtil;
 import com.example.freechat.FCPushService;
@@ -68,7 +73,7 @@ public class FCChatActivity extends FCActionBarActivity {
 	private DatabaseHandler m_dbhandler;
 
 	private boolean inRecorderMode = false;
-
+	
 	private AIDLChatActivity.Stub mCallback = new AIDLChatActivity.Stub() {
 
 		@Override
@@ -79,10 +84,46 @@ public class FCChatActivity extends FCActionBarActivity {
 
 		@Override
 		public void onNewMessageReceived(String message) throws RemoteException {
+			m_newMessage = message;
+			m_handler.sendEmptyMessage(NEW_MESSAGE);
 			Log.v(LOG_TAG, "new message: " + message);
 		}
 
 	};
+	
+	private static final int NEW_MESSAGE = 1000;
+	private String m_newMessage = "";
+	
+	private Handler m_handler = new Handler(Looper.getMainLooper()) {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case NEW_MESSAGE	:
+				updateNewMessage();
+				break;
+
+			default:
+				break;
+			}
+		}
+	};
+	
+	private void updateNewMessage() {
+		if (m_newMessage.equals("")) {
+			return;
+		}
+		
+		JSONArray jsonArray = null;
+		try {
+			jsonArray = new JSONArray(m_newMessage);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		FCMessage message = FCMessageUtil.jsonArrayToMessage(jsonArray);
+		updateMessageList(message);
+	}
 
 	private AIDLPushService mPushService;
 

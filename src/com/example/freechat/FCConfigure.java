@@ -9,8 +9,8 @@ public class FCConfigure {
 	/*
 	 * server of socket
 	 */
-	// public static final String SERVER_TCP_ADDR = "172.18.34.38";
-	public static final String SERVER_TCP_ADDR = "192.168.0.169";
+	public static final String SERVER_TCP_ADDR = "172.18.34.38";
+	//public static final String SERVER_TCP_ADDR = "192.168.0.169";
 	public static final int SERVER_TCP_PORT = 10000;
 	
 	/*

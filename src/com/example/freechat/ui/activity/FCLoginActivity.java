@@ -34,11 +34,6 @@ public class FCLoginActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		Intent intent2 = new Intent(FCLoginActivity.this,
-				FCMainActivity.class);
-		startActivity(intent2);
-		finish();
-		
 		setContentView(R.layout.activity_login);
 
 		getActionBar().setDisplayShowHomeEnabled(false);

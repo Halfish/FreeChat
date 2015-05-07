@@ -110,7 +110,7 @@ public class FCRegisterActivity extends FCActionBarActivity implements
 			break;
 
 		case REGISTER_FAILED:
-			Toast.makeText(this, "WRONG PASSWORD!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "REGISTER FAILED!", Toast.LENGTH_SHORT).show();
 			break;
 
 		default:
