@@ -2,6 +2,9 @@ package com.example.freechat;
 
 import java.io.IOException;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import com.example.freechat.aidl.AIDLChatActivity;
 import com.example.freechat.aidl.AIDLPushService;
 
@@ -44,8 +47,30 @@ public class FCPushService extends Service {
 
 	public void onCreate() {
 		mClientSocket = new FCLocalClientSocket();
+		sendOnlineMessage();
 	};
 
+	private void sendOnlineMessage() {
+		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		JSONArray jsonArray = new JSONArray();
+		try {
+			jsonArray.put(0, "upload_name");
+			jsonArray.put(1, "halfish");
+			mClientSocket.sendMessageToServer(jsonArray.toString());
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void onDestroy() {
 		mClientSocket.stop();
@@ -54,7 +79,7 @@ public class FCPushService extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		Log.e(Log_Tag, "onBind called");
+		Log.v(Log_Tag, "onBind called");
 		return mStub;
 	}
 

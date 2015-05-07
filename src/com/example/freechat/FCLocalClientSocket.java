@@ -31,6 +31,7 @@ public class FCLocalClientSocket {
 	}
 
 	public void setCallBack(AIDLChatActivity callback) {
+		Log.v(LOG_TAG, "set callback");
 		mCallback = callback;
 	}
 
@@ -39,6 +40,8 @@ public class FCLocalClientSocket {
 			@Override
 			public void run() {
 				try {
+					Log.v(LOG_TAG, "socket init");
+
 					mClient = new Socket(FCConfigure.SERVER_TCP_ADDR,
 							FCConfigure.SERVER_TCP_PORT);
 					mIn = mClient.getInputStream();
@@ -60,6 +63,8 @@ public class FCLocalClientSocket {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				Log.v(LOG_TAG, "start receive data");
+
 				doStartReceive();
 			}
 		}).start();
@@ -74,12 +79,18 @@ public class FCLocalClientSocket {
 				if (length > 0) {
 					String message = new String(Arrays.copyOf(buffer, length))
 							.trim();
-					mCallback.onNewMessageReceived(message);
+					Log.v(LOG_TAG, "message received: " + message);
+					
+					if(mCallback != null) {
+						Log.v(LOG_TAG, "mCallback is not null");
+						mCallback.onNewMessageReceived(message);
+					}
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -95,6 +106,7 @@ public class FCLocalClientSocket {
 			return false;
 
 		} else {
+			Log.v("FCLocalClientSocket", "sendMessageToServer: " + msg);
 			mWriter.write(msg);
 			mWriter.flush();
 		}
