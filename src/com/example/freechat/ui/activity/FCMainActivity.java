@@ -1,13 +1,29 @@
 package com.example.freechat.ui.activity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import com.example.freechat.FCConfigure;
+import com.example.freechat.FCPushService;
 import com.example.freechat.R;
+import com.example.freechat.aidl.AIDLChatActivity;
+import com.example.freechat.aidl.AIDLPushService;
 import com.example.freechat.ui.FCActionBarActivity;
+import com.example.freechat.ui.FCFriend;
+import com.example.freechat.ui.FCFriendFragment;
 import com.example.freechat.ui.FCSessionFragment;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,20 +31,78 @@ import android.widget.RadioGroup;
 
 public class FCMainActivity extends FCActionBarActivity {
 
+	protected static final int NEW_MESSAGE = 1000;
 	private Fragment[] m_fragments;
 	private FragmentManager m_fragmentManager;
 	private FragmentTransaction m_fragmentTransaction;
 	private RadioGroup m_bottomGroup;
+	private Handler m_HeartBeathandler;
+	private Handler m_msgHandler;
+	private String m_message = "";
+
+	private static String LOG_TAG = FCMainActivity.class.getName();
 
 	// private RadioButton m_left_RadioButton;
 	// private RadioButton m_right_RadioButton;
 
+	private AIDLChatActivity.Stub mCallback = new AIDLChatActivity.Stub() {
+
+		@Override
+		public void onMessageSendFinished(String message)
+				throws RemoteException {
+			Log.v(LOG_TAG, "message send: " + message);
+		}
+
+		@Override
+		public void onNewMessageReceived(String message) throws RemoteException {
+
+			Log.d("message: 000" + message + "000", "m_message: 000"
+					+ m_message + "000");
+
+			if (!m_message.equals(message)) {
+				m_message = message;
+				m_msgHandler.sendEmptyMessage(NEW_MESSAGE);
+			}
+			Log.v(LOG_TAG, "new message: " + message);
+		}
+
+	};
+
+	private AIDLPushService mPushService;
+
+	private ServiceConnection mConnection = new ServiceConnection() {
+		@Override
+		public void onServiceDisconnected(ComponentName name) {
+			mPushService = null;
+		}
+
+		@Override
+		public void onServiceConnected(ComponentName name, IBinder service) {
+
+			mPushService = AIDLPushService.Stub.asInterface(service);
+
+			Log.v(LOG_TAG, "get mPushService");
+
+			try {
+				mPushService.registerToPushService(mCallback);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	};
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.activity_fcmain);
 		initFragment();
 		setFragIndicator();
+		initMsgHandler();
+		bindMyPushService();
+		startHeartBeat();
+
+		Log.v(LOG_TAG, "onCreate");
 	}
 
 	private void initFragment() {
@@ -102,8 +176,109 @@ public class FCMainActivity extends FCActionBarActivity {
 
 	@Override
 	public void onResume() {
-		Log.v("mainActivity", "onResume");
-		super.onResume();
+		Log.v(LOG_TAG, "onResume");
+
 		((FCSessionFragment) m_fragments[1]).reloadData();
+		startHeartBeat();
+		super.onResume();
 	}
+
+	@Override
+	protected void onStop() {
+		Log.v(LOG_TAG, "onStop");
+		
+		// unBindMyPushService();
+		super.onStop();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		sendStateMessage("offline_request");
+		
+		super.onDestroy();
+	}
+
+	private void initMsgHandler() {
+		m_msgHandler = new Handler(getMainLooper()) {
+			public void handleMessage(Message msg) {
+				switch (msg.what) {
+				case NEW_MESSAGE:
+					parseMessageFromServer();
+					break;
+
+				default:
+					break;
+				}
+
+			}
+		};
+	}
+
+	private void parseMessageFromServer() {
+
+		JSONArray jsonArray = null;
+		try {
+			jsonArray = new JSONArray(m_message);
+
+			String stateString = jsonArray.getString(0);
+			if (stateString.equals("online_names")
+					|| stateString.equals("online_notification")) {
+				// online friends or new friend
+				for (int i = 1; i < jsonArray.length(); i++) {
+
+					FCFriend friend = new FCFriend(jsonArray.getString(i), "0");
+					((FCFriendFragment) m_fragments[0])
+							.addNewOnlineFriend(friend);
+				}
+
+			} else if (stateString.equals("offline_notification")) {
+				// online friends or new friend
+				for (int i = 1; i < jsonArray.length(); i++) {
+
+					FCFriend friend = new FCFriend(jsonArray.getString(i), "0");
+					((FCFriendFragment) m_fragments[0])
+							.removeOnlineFriend(friend);
+				}
+
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	private void startHeartBeat() {
+		m_HeartBeathandler = new Handler();
+		m_HeartBeathandler.postDelayed(new Runnable() {
+			public void run() {
+				sendStateMessage("upload_name");
+				// m_HeartBeathandler.postDelayed(this, 5000);
+			}
+		}, 1000);
+	}
+
+	private void bindMyPushService() {
+		Log.v(LOG_TAG, "bindMyPushService");
+
+		Intent intent = new Intent(FCMainActivity.this, FCPushService.class);
+		bindService(intent, mConnection, BIND_AUTO_CREATE);
+	}
+
+	private void sendStateMessage(String action) {
+		// just tell server I am online or offLine
+
+		JSONArray jsonArray = new JSONArray();
+		try {
+			jsonArray.put(0, action);
+			jsonArray.put(1, FCConfigure.myName);
+			mPushService.sendMessage(jsonArray.toString());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 }

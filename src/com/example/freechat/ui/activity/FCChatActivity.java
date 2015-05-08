@@ -122,7 +122,9 @@ public class FCChatActivity extends FCActionBarActivity {
 		}
 		
 		FCMessage message = FCMessageUtil.jsonArrayToMessage(jsonArray);
-		updateMessageList(message);
+		if(message != null) {
+			updateMessageList(message);
+		}
 	}
 
 	private AIDLPushService mPushService;
@@ -154,6 +156,12 @@ public class FCChatActivity extends FCActionBarActivity {
 		initAudio();
 		initChatListFromDB();
 		bindMyPushService();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		unbindService(mConnection);
 	}
 
 	@Override
@@ -363,7 +371,6 @@ public class FCChatActivity extends FCActionBarActivity {
 	private void bindMyPushService() {
 		Intent intent = new Intent(FCChatActivity.this, FCPushService.class);
 		bindService(intent, mConnection, BIND_AUTO_CREATE);
-		startService(intent);
 	}
 
 	private Runnable m_PollTask = new Runnable() {

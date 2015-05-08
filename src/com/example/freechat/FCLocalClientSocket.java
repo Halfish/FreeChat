@@ -74,22 +74,25 @@ public class FCLocalClientSocket {
 		byte[] buffer = new byte[1024 * 4];
 		int length = 0;
 		try {
-			while (!mClient.isClosed() && !mClient.isInputShutdown()
-					&& ((length = mIn.read(buffer)) != -1)) {
-				if (length > 0) {
+			while (!mClient.isClosed() && !mClient.isInputShutdown()) {
+
+				if ((length = mIn.read(buffer)) > 0) {
 					String message = new String(Arrays.copyOf(buffer, length))
 							.trim();
-					Log.v(LOG_TAG, "message received: " + message);
-					
-					if(mCallback != null) {
-						Log.v(LOG_TAG, "mCallback is not null");
+
+					if (mCallback != null) {
 						mCallback.onNewMessageReceived(message);
 					}
 				}
+				
+				Thread.sleep(200);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -106,7 +109,6 @@ public class FCLocalClientSocket {
 			return false;
 
 		} else {
-			Log.v("FCLocalClientSocket", "sendMessageToServer: " + msg);
 			mWriter.write(msg);
 			mWriter.flush();
 		}
