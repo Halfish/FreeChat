@@ -13,10 +13,12 @@ import com.example.freechat.ui.FCFriend;
 import com.example.freechat.ui.FCFriendFragment;
 import com.example.freechat.ui.FCSessionFragment;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -153,6 +155,7 @@ public class FCMainActivity extends FCActionBarActivity {
 		return true;
 	};
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
@@ -161,7 +164,12 @@ public class FCMainActivity extends FCActionBarActivity {
 		int id = item.getItemId();
 		switch (id) {
 		case android.R.id.home:
-			// finish();
+			AlertDialog isExit = new AlertDialog.Builder(this).create();  
+            isExit.setTitle("系统提示");  
+            isExit.setMessage("确定要注销吗？");  
+            isExit.setButton2("确认", listener); 
+            isExit.setButton("取消", listener);  
+            isExit.show();
 			break;
 
 		case R.id.action_refresh:
@@ -173,6 +181,26 @@ public class FCMainActivity extends FCActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+	
+	DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener()  
+    {  
+        public void onClick(DialogInterface dialog, int which)  
+        {  
+            switch (which)  
+            {  
+            case AlertDialog.BUTTON_NEGATIVE:// "确认"按钮退出程序  
+            	Intent intent = new Intent(FCMainActivity.this, FCLoginActivity.class);
+    			startActivity(intent);
+    			finish();  
+                break;  
+            case AlertDialog.BUTTON_POSITIVE:// "取消"第二个按钮取消对话框  
+                break;  
+            default:  
+                break;  
+            }  
+        }  
+    };
+
 
 	@Override
 	public void onResume() {

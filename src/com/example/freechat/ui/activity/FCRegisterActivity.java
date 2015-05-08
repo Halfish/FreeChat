@@ -1,18 +1,23 @@
 package com.example.freechat.ui.activity;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.example.freechat.FCConfigure;
 import com.example.freechat.R;
 import com.example.freechat.network.FCRegisterTask;
 import com.example.freechat.network.FCRegisterTask.OnRegisterFinishedCallBack;
 import com.example.freechat.ui.FCActionBarActivity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -103,6 +108,20 @@ public class FCRegisterActivity extends FCActionBarActivity implements
 	public void onRegisterFinished(int resultCode) {
 		switch (resultCode) {
 		case REGISTER_SUCCESS:
+			
+			SharedPreferences sharedPreferences = getSharedPreferences("text", Context.MODE_PRIVATE);
+			SharedPreferences.Editor editor = sharedPreferences.edit();
+			editor.putString("name", m_userName.getText().toString());
+			editor.putString("passcode", m_passWord.getText().toString());
+			editor.commit();
+			FCConfigure.myName = m_userName.getText().toString();
+			String s = Environment.getExternalStorageDirectory().getAbsolutePath() + "/freechat/";
+			s = s + FCConfigure.myName + "/";
+			File Dir = new File(s);
+			if (!Dir.exists()) {
+				Dir.mkdirs();
+			}
+			
 			Intent intent = new Intent(FCRegisterActivity.this,
 					FCMainActivity.class);
 			startActivity(intent);
