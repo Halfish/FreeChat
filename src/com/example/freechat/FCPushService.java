@@ -1,7 +1,5 @@
 package com.example.freechat;
 
-import java.io.IOException;
-
 import com.example.freechat.aidl.AIDLChatActivity;
 import com.example.freechat.aidl.AIDLPushService;
 
@@ -18,27 +16,24 @@ public class FCPushService extends Service {
 	private FCLocalClientSocket mClientSocket;
 
 	public AIDLPushService.Stub mStub = new AIDLPushService.Stub() {
-		@Override
-		public boolean sendMessage(String message) throws RemoteException {
-			boolean flag = false;
-			if (mClientSocket == null) {
-				return false;
-			}
-			try {
-				flag = mClientSocket.sendMessageToServer(message);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			mCallback.onMessageSendFinished(message);
-
-			return flag;
-		}
 
 		@Override
 		public void registerToPushService(AIDLChatActivity callback)
 				throws RemoteException {
 			mCallback = callback;
 			mClientSocket.setCallBack(mCallback);
+		}
+
+		@Override
+		public boolean sendMessage(char type, byte[] message)
+				throws RemoteException {
+			if(message == null || message.length <= 0) {
+				return false;
+			}
+			mClientSocket.sendDataToServer(type, message);
+			mCallback.onMessageSendFinished(true);
+			
+			return true;
 		}
 	};
 

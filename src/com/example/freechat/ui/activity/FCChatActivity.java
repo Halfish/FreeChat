@@ -24,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,33 +75,72 @@ public class FCChatActivity extends FCActionBarActivity {
 	private DatabaseHandler m_dbhandler;
 
 	private boolean inRecorderMode = false;
-	
+
 	private AIDLChatActivity.Stub mCallback = new AIDLChatActivity.Stub() {
 
 		@Override
-		public void onMessageSendFinished(String message)
-				throws RemoteException {
-			Log.v(LOG_TAG, "message send: " + message);
+		public void onMessageSendFinished(boolean flag) throws RemoteException {
+			if (flag) {
+				Log.v(LOG_TAG, "message send successfully");
+			}
 		}
 
 		@Override
-		public void onNewMessageReceived(String message) throws RemoteException {
-			m_newMessage = message;
-			m_handler.sendEmptyMessage(NEW_MESSAGE);
-			Log.v(LOG_TAG, "new message: " + message);
+		public void onNewMessageReceived(char type, byte[] message)
+				throws RemoteException {
+			switch (type) {
+			case 'a':
+				String msg = new String(message);
+				m_newMessage = msg;
+				m_handler.sendEmptyMessage(NEW_MESSAGE);
+				Log.v(LOG_TAG, "new message: " + message);
+				break;
+
+			case 'b':
+				m_bitmapBytes = new byte[message.length];
+				m_bitmapBytes = message;
+
+				m_handler.sendEmptyMessage(NEW_PIC_MESSAGE);
+				Log.v(LOG_TAG, "new picture get!");
+				break;
+
+			case 'c':
+				m_audioBytes = new byte[message.length];
+				m_audioBytes = message;
+
+				m_handler.sendEmptyMessage(NEW_AUDIO_MESSAGE);
+				Log.v(LOG_TAG, "new audio get!");
+				break;
+
+			default:
+				break;
+			}
 		}
 
 	};
-	
+
 	private static final int NEW_MESSAGE = 1000;
+	private static final int NEW_PIC_MESSAGE = 1001;
+	private static final int NEW_AUDIO_MESSAGE = 1002;
+
 	private String m_newMessage = "";
-	
+	private byte[] m_bitmapBytes = null;
+	private byte[] m_audioBytes = null;
+
 	private Handler m_handler = new Handler(Looper.getMainLooper()) {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case NEW_MESSAGE	:
-				updateNewMessage();
+			case NEW_MESSAGE:
+				updateNewTextMessage();
+				break;
+
+			case NEW_PIC_MESSAGE:
+				updateNewPictureMessage();
+				break;
+
+			case NEW_AUDIO_MESSAGE:
+				updateNewAudioMessage();
 				break;
 
 			default:
@@ -107,24 +148,49 @@ public class FCChatActivity extends FCActionBarActivity {
 			}
 		}
 	};
-	
-	private void updateNewMessage() {
+
+	private void updateNewTextMessage() {
 		if (m_newMessage.equals("")) {
 			return;
 		}
-		
 		JSONArray jsonArray = null;
 		try {
 			jsonArray = new JSONArray(m_newMessage);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		FCMessage message = FCMessageUtil.jsonArrayToMessage(jsonArray);
-		if(message != null) {
+		if (message != null) {
 			updateMessageList(message);
 		}
+	}
+
+	private void updateNewPictureMessage() {
+		if (m_bitmapBytes == null) {
+			return;
+		}
+
+		FCFileHelper fileHelper = new FCFileHelper(getBaseContext());
+		String filename = fileHelper.generateFileName();
+		fileHelper.writeToFile(filename, m_bitmapBytes);
+
+		FCMessage message = new FCMessage(filename, FCMessage.RECEIVE_MESSAGE,
+				FCMessage.TYPE_PIC);
+		updateMessageList(message);
+	}
+
+	private void updateNewAudioMessage() {
+		if (m_audioBytes == null) {
+			return;
+		}
+
+		FCFileHelper fileHelper = new FCFileHelper(getBaseContext());
+		String filename = fileHelper.generateFileName();
+		fileHelper.writeToFile(filename, m_audioBytes);
+
+		FCMessage message = new FCMessage(filename, FCMessage.RECEIVE_MESSAGE,
+				FCMessage.TYPE_AUD);
+		updateMessageList(message);
 	}
 
 	private AIDLPushService mPushService;
@@ -157,7 +223,7 @@ public class FCChatActivity extends FCActionBarActivity {
 		initChatListFromDB();
 		bindMyPushService();
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -171,10 +237,35 @@ public class FCChatActivity extends FCActionBarActivity {
 		if (requestCode == FCChatActivity.PIC_REQUEST
 				&& resultCode == RESULT_OK) {
 			String content = data.getStringExtra("content");
-			FCMessage msg = new FCMessage(content, FCMessage.SEND_MESSAGE,
-					FCMessage.TYPE_PIC);
-			updateMessageList(msg);
+			if (sendFileMessage('b', content)) {
+				FCMessage msg = new FCMessage(content, FCMessage.SEND_MESSAGE,
+						FCMessage.TYPE_PIC);
+				updateMessageList(msg);
+			}
 		}
+	}
+
+	private boolean sendFileMessage(char type, String path) {
+
+		int length;
+		byte[] buffer = null;
+		try {
+			FileInputStream fin = new FileInputStream(path);
+			length = fin.available();
+			buffer = new byte[length];
+			fin.read(buffer);
+			fin.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			mPushService.sendMessage(type, buffer);
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		}
+
+		return true;
 	}
 
 	private void initUI() {
@@ -260,14 +351,18 @@ public class FCChatActivity extends FCActionBarActivity {
 					m_RecorderHandler.removeCallbacks(m_PollTask);
 					m_FCAudioRecorder.stopRecord();
 					m_RecordVolumeView.setImageResource(R.drawable.amp1);
-					// make message
-					FCMessage msg = new FCMessage(filepath,
-							FCMessage.SEND_MESSAGE, FCMessage.TYPE_AUD);
-					updateMessageList(msg);
+					
+					if (sendFileMessage('c', filepath)) {
+						// make message
+						FCMessage msg = new FCMessage(filepath,
+								FCMessage.SEND_MESSAGE, FCMessage.TYPE_AUD);
+						updateMessageList(msg);
+					}
+					
 					break;
 
 				case MotionEvent.ACTION_MOVE:
-					// TODO cancel sending
+					// cancel sending
 				default:
 					break;
 				}
@@ -288,7 +383,7 @@ public class FCChatActivity extends FCActionBarActivity {
 							Toast.LENGTH_SHORT).show();
 					break;
 				case FCMessage.TYPE_PIC:
-					// TODO: show picture alert
+					// show picture alert
 					Intent intent = new Intent(FCChatActivity.this,
 							FCBrowseActivity.class);
 					intent.putExtra("address", content);
@@ -296,7 +391,7 @@ public class FCChatActivity extends FCActionBarActivity {
 					break;
 				case FCMessage.TYPE_AUD:
 					m_player.play(content);
-					// TODO: show audio alert
+					// show audio alert
 					break;
 				default:
 					break;
@@ -324,7 +419,7 @@ public class FCChatActivity extends FCActionBarActivity {
 
 	private void sendMessageToServer(String msg) {
 		try {
-			mPushService.sendMessage(msg);
+			mPushService.sendMessage('a', msg.getBytes());
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
