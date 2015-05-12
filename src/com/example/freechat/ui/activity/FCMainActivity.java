@@ -50,24 +50,33 @@ public class FCMainActivity extends FCActionBarActivity {
 	private AIDLChatActivity.Stub mCallback = new AIDLChatActivity.Stub() {
 
 		@Override
-		public void onMessageSendFinished(String message)
-				throws RemoteException {
-			Log.v(LOG_TAG, "message send: " + message);
+		public void onMessageSendFinished(boolean flag) throws RemoteException {
+			Log.v(LOG_TAG, "message finished!");
 		}
 
 		@Override
-		public void onNewMessageReceived(String message) throws RemoteException {
+		public void onNewMessageReceived(char type, byte[] message)
+				throws RemoteException {
+			switch (type) {
+			case 'a':
+				String msgString = new String(message);
+				if (!m_message.equals(msgString)) {
+					m_message = msgString;
+					m_msgHandler.sendEmptyMessage(NEW_MESSAGE);
+				}
+				Log.v(LOG_TAG, "new message: " + msgString);
+				break;
 
-			Log.d("message: 000" + message + "000", "m_message: 000"
-					+ m_message + "000");
+			case 'b':
+				break;
 
-			if (!m_message.equals(message)) {
-				m_message = message;
-				m_msgHandler.sendEmptyMessage(NEW_MESSAGE);
+			case 'c':
+				break;
+
+			default:
+				break;
 			}
-			Log.v(LOG_TAG, "new message: " + message);
 		}
-
 	};
 
 	private AIDLPushService mPushService;
@@ -164,12 +173,12 @@ public class FCMainActivity extends FCActionBarActivity {
 		int id = item.getItemId();
 		switch (id) {
 		case android.R.id.home:
-			AlertDialog isExit = new AlertDialog.Builder(this).create();  
-            isExit.setTitle("系统提示");  
-            isExit.setMessage("确定要注销吗？");  
-            isExit.setButton2("确认", listener); 
-            isExit.setButton("取消", listener);  
-            isExit.show();
+			AlertDialog isExit = new AlertDialog.Builder(this).create();
+			isExit.setTitle("系统提示");
+			isExit.setMessage("确定要注销吗？");
+			isExit.setButton2("确认", listener);
+			isExit.setButton("取消", listener);
+			isExit.show();
 			break;
 
 		case R.id.action_refresh:
@@ -181,26 +190,23 @@ public class FCMainActivity extends FCActionBarActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener()  
-    {  
-        public void onClick(DialogInterface dialog, int which)  
-        {  
-            switch (which)  
-            {  
-            case AlertDialog.BUTTON_NEGATIVE:// "确认"按钮退出程序  
-            	Intent intent = new Intent(FCMainActivity.this, FCLoginActivity.class);
-    			startActivity(intent);
-    			finish();  
-                break;  
-            case AlertDialog.BUTTON_POSITIVE:// "取消"第二个按钮取消对话框  
-                break;  
-            default:  
-                break;  
-            }  
-        }  
-    };
 
+	DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int which) {
+			switch (which) {
+			case AlertDialog.BUTTON_NEGATIVE:// "确认"按钮退出程序
+				Intent intent = new Intent(FCMainActivity.this,
+						FCLoginActivity.class);
+				startActivity(intent);
+				finish();
+				break;
+			case AlertDialog.BUTTON_POSITIVE:// "取消"第二个按钮取消对话框
+				break;
+			default:
+				break;
+			}
+		}
+	};
 
 	@Override
 	public void onResume() {
@@ -214,15 +220,15 @@ public class FCMainActivity extends FCActionBarActivity {
 	@Override
 	protected void onStop() {
 		Log.v(LOG_TAG, "onStop");
-		
+
 		// unBindMyPushService();
 		super.onStop();
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		sendStateMessage("offline_request");
-		
+
 		super.onDestroy();
 	}
 
@@ -293,18 +299,18 @@ public class FCMainActivity extends FCActionBarActivity {
 		bindService(intent, mConnection, BIND_AUTO_CREATE);
 	}
 
+	// just tell server I am online or offLine
 	private void sendStateMessage(String action) {
-		// just tell server I am online or offLine
-
+		
 		JSONArray jsonArray = new JSONArray();
 		try {
 			jsonArray.put(0, action);
 			jsonArray.put(1, FCConfigure.myName);
-			mPushService.sendMessage(jsonArray.toString());
+			byte[] b = jsonArray.toString().getBytes();
+			mPushService.sendMessage('a', b);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
