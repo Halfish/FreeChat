@@ -112,6 +112,12 @@ public class FCMainActivity extends FCActionBarActivity {
 		initMsgHandler();
 		bindMyPushService();
 		startHeartBeat();
+		
+		
+		// test TODO
+		FCFriend friend = new FCFriend("Halfish", "0");
+		((FCFriendFragment) m_fragments[0])
+				.addNewOnlineFriend(friend);
 
 		Log.v(LOG_TAG, "onCreate");
 	}

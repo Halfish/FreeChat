@@ -45,11 +45,14 @@ return true;
 case TRANSACTION_sendMessage:
 {
 data.enforceInterface(DESCRIPTOR);
-java.lang.String _arg0;
-_arg0 = data.readString();
-boolean _result = this.sendMessage(_arg0);
+char _arg0;
+_arg0 = (char)data.readInt();
+byte[] _arg1;
+_arg1 = data.createByteArray();
+boolean _result = this.sendMessage(_arg0, _arg1);
 reply.writeNoException();
 reply.writeInt(((_result)?(1):(0)));
+reply.writeByteArray(_arg1);
 return true;
 }
 case TRANSACTION_registerToPushService:
@@ -79,17 +82,19 @@ public java.lang.String getInterfaceDescriptor()
 {
 return DESCRIPTOR;
 }
-@Override public boolean sendMessage(java.lang.String message) throws android.os.RemoteException
+@Override public boolean sendMessage(char type, byte[] message) throws android.os.RemoteException
 {
 android.os.Parcel _data = android.os.Parcel.obtain();
 android.os.Parcel _reply = android.os.Parcel.obtain();
 boolean _result;
 try {
 _data.writeInterfaceToken(DESCRIPTOR);
-_data.writeString(message);
+_data.writeInt(((int)type));
+_data.writeByteArray(message);
 mRemote.transact(Stub.TRANSACTION_sendMessage, _data, _reply, 0);
 _reply.readException();
 _result = (0!=_reply.readInt());
+_reply.readByteArray(message);
 }
 finally {
 _reply.recycle();
@@ -116,6 +121,6 @@ _data.recycle();
 static final int TRANSACTION_sendMessage = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
 static final int TRANSACTION_registerToPushService = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
 }
-public boolean sendMessage(java.lang.String message) throws android.os.RemoteException;
+public boolean sendMessage(char type, byte[] message) throws android.os.RemoteException;
 public void registerToPushService(com.example.freechat.aidl.AIDLChatActivity callback) throws android.os.RemoteException;
 }

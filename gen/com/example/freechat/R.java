@@ -113,6 +113,7 @@ public final class R {
         public static final int session_item=0x7f03000c;
         public static final int zx_browse=0x7f03000d;
         public static final int zx_layout1=0x7f03000e;
+        public static final int zx_start=0x7f03000f;
     }
     public static final class menu {
         public static final int fcaction_bar=0x7f080000;

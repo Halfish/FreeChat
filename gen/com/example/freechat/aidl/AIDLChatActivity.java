@@ -45,8 +45,8 @@ return true;
 case TRANSACTION_onMessageSendFinished:
 {
 data.enforceInterface(DESCRIPTOR);
-java.lang.String _arg0;
-_arg0 = data.readString();
+boolean _arg0;
+_arg0 = (0!=data.readInt());
 this.onMessageSendFinished(_arg0);
 reply.writeNoException();
 return true;
@@ -54,10 +54,13 @@ return true;
 case TRANSACTION_onNewMessageReceived:
 {
 data.enforceInterface(DESCRIPTOR);
-java.lang.String _arg0;
-_arg0 = data.readString();
-this.onNewMessageReceived(_arg0);
+char _arg0;
+_arg0 = (char)data.readInt();
+byte[] _arg1;
+_arg1 = data.createByteArray();
+this.onNewMessageReceived(_arg0, _arg1);
 reply.writeNoException();
+reply.writeByteArray(_arg1);
 return true;
 }
 }
@@ -78,13 +81,13 @@ public java.lang.String getInterfaceDescriptor()
 {
 return DESCRIPTOR;
 }
-@Override public void onMessageSendFinished(java.lang.String message) throws android.os.RemoteException
+@Override public void onMessageSendFinished(boolean flag) throws android.os.RemoteException
 {
 android.os.Parcel _data = android.os.Parcel.obtain();
 android.os.Parcel _reply = android.os.Parcel.obtain();
 try {
 _data.writeInterfaceToken(DESCRIPTOR);
-_data.writeString(message);
+_data.writeInt(((flag)?(1):(0)));
 mRemote.transact(Stub.TRANSACTION_onMessageSendFinished, _data, _reply, 0);
 _reply.readException();
 }
@@ -93,15 +96,17 @@ _reply.recycle();
 _data.recycle();
 }
 }
-@Override public void onNewMessageReceived(java.lang.String message) throws android.os.RemoteException
+@Override public void onNewMessageReceived(char type, byte[] message) throws android.os.RemoteException
 {
 android.os.Parcel _data = android.os.Parcel.obtain();
 android.os.Parcel _reply = android.os.Parcel.obtain();
 try {
 _data.writeInterfaceToken(DESCRIPTOR);
-_data.writeString(message);
+_data.writeInt(((int)type));
+_data.writeByteArray(message);
 mRemote.transact(Stub.TRANSACTION_onNewMessageReceived, _data, _reply, 0);
 _reply.readException();
+_reply.readByteArray(message);
 }
 finally {
 _reply.recycle();
@@ -112,6 +117,6 @@ _data.recycle();
 static final int TRANSACTION_onMessageSendFinished = (android.os.IBinder.FIRST_CALL_TRANSACTION + 0);
 static final int TRANSACTION_onNewMessageReceived = (android.os.IBinder.FIRST_CALL_TRANSACTION + 1);
 }
-public void onMessageSendFinished(java.lang.String message) throws android.os.RemoteException;
-public void onNewMessageReceived(java.lang.String message) throws android.os.RemoteException;
+public void onMessageSendFinished(boolean flag) throws android.os.RemoteException;
+public void onNewMessageReceived(char type, byte[] message) throws android.os.RemoteException;
 }
