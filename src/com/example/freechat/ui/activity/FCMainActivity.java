@@ -183,7 +183,7 @@ public class FCMainActivity extends FCActionBarActivity {
 			break;
 
 		case R.id.action_refresh:
-
+			sendStateMessage("upload_name");
 			break;
 
 		default:

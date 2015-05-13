@@ -21,6 +21,7 @@ import com.example.freechat.ui.FCActionBarActivity;
 
 public class FCPictureActivity extends FCActionBarActivity {
 
+	private static final int MAX_PIC_SIZE = 400000;
 	private static int RESULT_LOAD_IMAGE = 1;
 	private int picturesize_int;
 	private String picturesize_str;
@@ -120,14 +121,14 @@ public class FCPictureActivity extends FCActionBarActivity {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos); // 如果签名是png的话，则不进行质量压缩
 
-		if (bmp == null || picturesize_int <= 1024000) {
+		if (bmp == null || picturesize_int <= MAX_PIC_SIZE) {
 			return baos.toByteArray(); // 如果图片本身的大小已经小于这个大小了，就没必要进行压缩
 		}
 
 		float cor = (float) picturesize_int / (float) baos.toByteArray().length;
 		int quality = 100;
 
-		while ((float) baos.toByteArray().length * cor > 1024000f) {
+		while ((float) baos.toByteArray().length * cor > MAX_PIC_SIZE) {
 			quality = quality - 5; // 每次减5
 			baos.reset(); // 重置baos即清空baos
 			if (quality <= 0) {

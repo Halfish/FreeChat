@@ -29,13 +29,13 @@ public class FCFileHelper {
 
 	public FCFileHelper(Context context) {
 		m_context = context;
-		m_dataPath = m_context.getFilesDir().getPath() + "/freechat/"
-				+ FCConfigure.myName + "/";
+		m_dataPath = m_context.getFilesDir().getPath() + "/";
 		m_sdPath = Environment.getExternalStorageDirectory().getAbsolutePath()
-				+ "/";
+				+ "/freechat/" + FCConfigure.myName + "/";
 		formatter = new SimpleDateFormat("yyyyMMddHHmmss");
 	}
 
+	// no use
 	public boolean isDataFileExist(String fileName) {
 		File file = new File(m_dataPath + fileName);
 		return file.exists();

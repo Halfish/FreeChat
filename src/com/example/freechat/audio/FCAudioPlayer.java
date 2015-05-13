@@ -7,39 +7,38 @@ import android.media.MediaPlayer;
 import android.widget.Toast;
 
 public class FCAudioPlayer {
-	
+
 	private MediaPlayer m_Player;
 	private Context m_Context;
-	
+
 	public FCAudioPlayer(Context context) {
 		m_Context = context;
 	}
-	
-	public void play (String fileName) {
+
+	public void play(String fileName) {
 		m_Player = new MediaPlayer();
 		try {
 			m_Player.setDataSource(fileName);
 			m_Player.prepare();
 			m_Player.start();
-		}  catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
+		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			Toast.makeText(m_Context, "play failed!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(m_Context, "play failed!", Toast.LENGTH_SHORT)
+					.show();
 		}
 	}
-	
+
 	public void release() {
-		m_Player.stop();
-		m_Player.release();
-		m_Player = null;
+		if (m_Player != null) {
+			m_Player.stop();
+			m_Player.release();
+			m_Player = null;
+		}
 	}
 }
