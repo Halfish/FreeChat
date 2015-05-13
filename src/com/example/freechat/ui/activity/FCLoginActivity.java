@@ -112,9 +112,6 @@ public class FCLoginActivity extends Activity implements
 			break;
 
 		default:
-			Intent intent2 = new Intent(FCLoginActivity.this,
-					FCMainActivity.class);
-			startActivity(intent2);
 			finish();
 			Toast.makeText(this, "Wrong ReturnCode From Server",
 					Toast.LENGTH_SHORT).show();

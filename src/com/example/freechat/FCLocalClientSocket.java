@@ -67,23 +67,47 @@ public class FCLocalClientSocket {
 	}
 
 	private void doStartReceive() {
-		byte[] buffer = new byte[1024 * 4];
+		byte[] buffer = new byte[5];
 		int length = 0;
 		try {
 			while (!mClient.isClosed() && !mClient.isInputShutdown()) {
 
 				// read 5 bytes first
 				length = mInputStream.read(buffer, 0, 5);
+				if (length != -1) {
+					Log.v(LOG_TAG, "doStartReceive head: " + length + "---"
+							+ buffer[0]);
+				}
+
 				if (length == 5) {
 					char type = (char) buffer[0];
+					Log.v(LOG_TAG, "type is: " + type + " buffer[0] is " + buffer[0]);
+					
 					int dataLength = FCMessageUtil.byteToInt(buffer, 1);
 					
-					if (mInputStream.read(buffer, 0, dataLength) > 0) {
+					if(type == 'b' || type == 'c') {
+						byte [] from = new byte[100];
+						mInputStream.read(from, 0, 100);
+						Log.v(LOG_TAG, "doStartReceive from");
+					}					
 
-						if (mCallback != null) {
-							mCallback.onNewMessageReceived(type, buffer);
-						}
+					Log.v(LOG_TAG, "doStartReceive data length: " + dataLength);
+					
+					buffer = new byte[dataLength];
+					int len = 0;
+					int currentLen = 0;
+					while (currentLen < dataLength) {
+						len = mInputStream.read(buffer, currentLen, dataLength - currentLen);
+						currentLen += len;
+						Log.v(LOG_TAG, "len is " + len);
+						Log.v(LOG_TAG, "current len is " + currentLen);
 					}
+					Log.v(LOG_TAG, "out of while and current len is " + currentLen);
+					
+					if (currentLen > 0 && mCallback != null) {
+						mCallback.onNewMessageReceived(type, buffer);
+					}
+					buffer = new byte[5];
 				}
 
 				Thread.sleep(200);
@@ -95,7 +119,7 @@ public class FCLocalClientSocket {
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}
-	}	
+	}
 
 	public boolean sendDataToServer(char type, byte[] msg) {
 
@@ -104,9 +128,12 @@ public class FCLocalClientSocket {
 			return false;
 		}
 
+		Log.v(LOG_TAG, "start sending data " + "type is " + type);
+		Log.v(LOG_TAG, "start sending data " + "length is " + msg.length);
+
 		byte[] totalBuffer = new byte[msg.length + 5];
 
-		totalBuffer[0] = 'a';
+		totalBuffer[0] = (byte) type;
 		byte[] lenBuffer = FCMessageUtil.intToByte(msg.length);
 
 		// copy lenBuffer to totalBuffer
@@ -115,7 +142,39 @@ public class FCLocalClientSocket {
 		// copy lenBuffer to totalBuffer
 		System.arraycopy(msg, 0, totalBuffer, 5, msg.length);
 
-		Log.v(LOG_TAG, new String(totalBuffer));
+		try {
+			mOutputStream.write(totalBuffer);
+			mOutputStream.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return true;
+	}
+	
+	public boolean sendFileToServer(char type, String fromName, String toName, byte[] msg) {
+		if (mClient == null) {
+			Log.e(LOG_TAG, "client socket is null");
+			return false;
+		}
+
+		Log.v(LOG_TAG, "send file " + "type is " + type);
+		Log.v(LOG_TAG, "send file " + "length is " + msg.length);
+
+		byte[] totalBuffer = new byte[5 + 100 + 100 + msg.length];
+
+		totalBuffer[0] = (byte) type;
+		byte[] lenBuffer = FCMessageUtil.intToByte(msg.length);
+
+		// copy lenBuffer to totalBuffer
+		System.arraycopy(lenBuffer, 0, totalBuffer, 1, lenBuffer.length);
+
+		// copy fromName and toName to totalBuffer		
+		System.arraycopy(fromName.getBytes(), 0, totalBuffer, 5, fromName.getBytes().length);
+		System.arraycopy(toName.getBytes(), 0, totalBuffer, 105, toName.getBytes().length);
+		
+		// copy lenBuffer to totalBuffer
+		System.arraycopy(msg, 0, totalBuffer, 205, msg.length);
 
 		try {
 			mOutputStream.write(totalBuffer);

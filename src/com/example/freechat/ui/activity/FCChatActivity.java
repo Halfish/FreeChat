@@ -32,6 +32,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.example.freechat.FCConfigure;
 import com.example.freechat.FCMessageUtil;
 import com.example.freechat.FCPushService;
 import com.example.freechat.R;
@@ -97,7 +98,7 @@ public class FCChatActivity extends FCActionBarActivity {
 				break;
 
 			case 'b':
-				m_bitmapBytes = new byte[message.length];
+				//m_bitmapBytes = new byte[message.length];
 				m_bitmapBytes = message;
 
 				m_handler.sendEmptyMessage(NEW_PIC_MESSAGE);
@@ -105,7 +106,7 @@ public class FCChatActivity extends FCActionBarActivity {
 				break;
 
 			case 'c':
-				m_audioBytes = new byte[message.length];
+				//m_audioBytes = new byte[message.length];
 				m_audioBytes = message;
 
 				m_handler.sendEmptyMessage(NEW_AUDIO_MESSAGE);
@@ -166,6 +167,7 @@ public class FCChatActivity extends FCActionBarActivity {
 	}
 
 	private void updateNewPictureMessage() {
+		Log.v(LOG_TAG, "updata picture");
 		if (m_bitmapBytes == null) {
 			return;
 		}
@@ -180,6 +182,7 @@ public class FCChatActivity extends FCActionBarActivity {
 	}
 
 	private void updateNewAudioMessage() {
+		Log.v(LOG_TAG, "updata audio");
 		if (m_audioBytes == null) {
 			return;
 		}
@@ -227,6 +230,9 @@ public class FCChatActivity extends FCActionBarActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		if(m_player != null) {
+			m_player.release();
+		}
 		unbindService(mConnection);
 	}
 
@@ -237,7 +243,9 @@ public class FCChatActivity extends FCActionBarActivity {
 		if (requestCode == FCChatActivity.PIC_REQUEST
 				&& resultCode == RESULT_OK) {
 			String content = data.getStringExtra("content");
+			Log.v(LOG_TAG, "onActivityResult start to send picture");
 			if (sendFileMessage('b', content)) {
+				Log.v(LOG_TAG, "onActivityResult send picture successful");
 				FCMessage msg = new FCMessage(content, FCMessage.SEND_MESSAGE,
 						FCMessage.TYPE_PIC);
 				updateMessageList(msg);
@@ -246,6 +254,8 @@ public class FCChatActivity extends FCActionBarActivity {
 	}
 
 	private boolean sendFileMessage(char type, String path) {
+		
+		Log.v(LOG_TAG, "send file " + "type is " + type);
 
 		int length;
 		byte[] buffer = null;
@@ -260,7 +270,7 @@ public class FCChatActivity extends FCActionBarActivity {
 		}
 
 		try {
-			mPushService.sendMessage(type, buffer);
+			mPushService.sendFile(type, FCConfigure.myName, m_userid, buffer);
 		} catch (RemoteException e) {
 			e.printStackTrace();
 		}

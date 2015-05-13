@@ -35,6 +35,19 @@ public class FCPushService extends Service {
 			
 			return true;
 		}
+
+		@Override
+		public boolean sendFile(char type, String from, String to,
+				byte[] message) throws RemoteException {
+			
+			if(message == null || message.length <= 0) {
+				return false;
+			}
+			mClientSocket.sendFileToServer(type, from, to, message);
+			mCallback.onMessageSendFinished(true);
+			
+			return true;
+		}
 	};
 
 	public void onCreate() {

@@ -13,6 +13,7 @@ import com.example.freechat.ui.FCFriend;
 import com.example.freechat.ui.FCFriendFragment;
 import com.example.freechat.ui.FCSessionFragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -21,6 +22,7 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -113,13 +115,6 @@ public class FCMainActivity extends FCActionBarActivity {
 		bindMyPushService();
 		startHeartBeat();
 		
-		
-		// test TODO
-		FCFriend friend = new FCFriend("Halfish", "0");
-		((FCFriendFragment) m_fragments[0])
-				.addNewOnlineFriend(friend);
-
-		Log.v(LOG_TAG, "onCreate");
 	}
 
 	private void initFragment() {
@@ -201,6 +196,8 @@ public class FCMainActivity extends FCActionBarActivity {
 		public void onClick(DialogInterface dialog, int which) {
 			switch (which) {
 			case AlertDialog.BUTTON_NEGATIVE:// "确认"按钮退出程序
+				SharedPreferences sharedPreferences = getSharedPreferences("text",Activity.MODE_PRIVATE);
+				sharedPreferences.edit().clear().commit();
 				Intent intent = new Intent(FCMainActivity.this,
 						FCLoginActivity.class);
 				startActivity(intent);

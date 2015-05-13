@@ -27,7 +27,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.example.freechat.ui.activity.FCLoginActivity"
+            android:name="com.example.freechat.ui.activity.FCStartActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,12 +36,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.FCActionBarActivity" />
+        <activity android:name=".ui.activity.FCLoginActivity" />
         <activity android:name=".ui.activity.FCRegisterActivity" />
         <activity android:name=".ui.activity.FCChatActivity" />
         <activity android:name=".ui.activity.FCMainActivity" />
         <activity android:name=".ui.activity.FCPictureActivity" />
         <activity android:name=".ui.activity.FCBrowseActivity" />
-        <activity android:name=".ui.activity.FCAudioActivity" />
             
         <service android:name=".FCPushService" />
     </application>
