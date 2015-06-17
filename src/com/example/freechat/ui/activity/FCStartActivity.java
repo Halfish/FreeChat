@@ -25,7 +25,7 @@ public class FCStartActivity extends Activity {
 		SharedPreferences sharedPreferences = getSharedPreferences("text", Context.MODE_PRIVATE);
 		String name = sharedPreferences.getString("name", ""); 
 		String passcode = sharedPreferences.getString("passcode", ""); 
-		if (name == "" || passcode == "") {
+		if (!name.equals("") || !passcode.equals("")) {
 			Intent intent = new Intent(FCStartActivity.this, FCLoginActivity.class);
 			startActivity(intent);
 			finish();

@@ -223,7 +223,6 @@ public class FCMainActivity extends FCActionBarActivity {
 	@Override
 	protected void onStop() {
 		Log.v(LOG_TAG, "onStop");
-
 		// unBindMyPushService();
 		super.onStop();
 	}

@@ -98,7 +98,7 @@ public class FCChatActivity extends FCActionBarActivity {
 				break;
 
 			case 'b':
-				//m_bitmapBytes = new byte[message.length];
+				// m_bitmapBytes = new byte[message.length];
 				m_bitmapBytes = message;
 
 				m_handler.sendEmptyMessage(NEW_PIC_MESSAGE);
@@ -106,7 +106,7 @@ public class FCChatActivity extends FCActionBarActivity {
 				break;
 
 			case 'c':
-				//m_audioBytes = new byte[message.length];
+				// m_audioBytes = new byte[message.length];
 				m_audioBytes = message;
 
 				m_handler.sendEmptyMessage(NEW_AUDIO_MESSAGE);
@@ -133,7 +133,11 @@ public class FCChatActivity extends FCActionBarActivity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case NEW_MESSAGE:
-				updateNewTextMessage();
+				try {
+					updateNewTextMessage();
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 				break;
 
 			case NEW_PIC_MESSAGE:
@@ -150,16 +154,19 @@ public class FCChatActivity extends FCActionBarActivity {
 		}
 	};
 
-	private void updateNewTextMessage() {
+	private void updateNewTextMessage() throws JSONException {
 		if (m_newMessage.equals("")) {
 			return;
 		}
 		JSONArray jsonArray = null;
-		try {
-			jsonArray = new JSONArray(m_newMessage);
-		} catch (JSONException e) {
-			e.printStackTrace();
+		jsonArray = new JSONArray(m_newMessage);
+		String type = jsonArray.getString(0);
+		String fromName = jsonArray.getString(1);
+		
+		if(!type.equals("chat_message") || !fromName.equals(m_userid)) {
+			return;
 		}
+		
 		FCMessage message = FCMessageUtil.jsonArrayToMessage(jsonArray);
 		if (message != null) {
 			updateMessageList(message);
@@ -230,7 +237,7 @@ public class FCChatActivity extends FCActionBarActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if(m_player != null) {
+		if (m_player != null) {
 			m_player.release();
 		}
 		unbindService(mConnection);
@@ -254,7 +261,7 @@ public class FCChatActivity extends FCActionBarActivity {
 	}
 
 	private boolean sendFileMessage(char type, String path) {
-		
+
 		Log.v(LOG_TAG, "send file " + "type is " + type);
 
 		int length;
@@ -361,14 +368,14 @@ public class FCChatActivity extends FCActionBarActivity {
 					m_RecorderHandler.removeCallbacks(m_PollTask);
 					m_FCAudioRecorder.stopRecord();
 					m_RecordVolumeView.setImageResource(R.drawable.amp1);
-					
+
 					if (sendFileMessage('c', filepath)) {
 						// make message
 						FCMessage msg = new FCMessage(filepath,
 								FCMessage.SEND_MESSAGE, FCMessage.TYPE_AUD);
 						updateMessageList(msg);
 					}
-					
+
 					break;
 
 				case MotionEvent.ACTION_MOVE:
@@ -448,6 +455,7 @@ public class FCChatActivity extends FCActionBarActivity {
 		m_dbhandler = new DatabaseHandler(getApplicationContext());
 		m_messageList.addAll(m_dbhandler.selectMessageByName(m_userid));
 		m_chatListView.setAdapter(m_messageAdapter);
+		m_chatListView.setSelection(m_messageList.size() - 1);
 	}
 
 	@Override

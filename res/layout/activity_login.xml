@@ -69,6 +69,6 @@
         android:text="sign up"
         android:id="@+id/bt_goto_reg"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerInParent="true" />
 
 </RelativeLayout>

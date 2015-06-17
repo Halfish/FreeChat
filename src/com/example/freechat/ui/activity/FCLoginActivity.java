@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -79,6 +80,7 @@ public class FCLoginActivity extends Activity implements
 
 	@Override
 	public void onLoginFinished(int returnCode) {
+		Log.v("LoginActivity", "returnCode is" + returnCode);
 		switch (returnCode) {
 		case LOGIN_SUCCESS:
 			Toast.makeText(this, "Login Successfully !", Toast.LENGTH_SHORT)
@@ -112,7 +114,6 @@ public class FCLoginActivity extends Activity implements
 			break;
 
 		default:
-			finish();
 			Toast.makeText(this, "Wrong ReturnCode From Server",
 					Toast.LENGTH_SHORT).show();
 			break;
